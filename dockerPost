@@ -1,0 +1,22 @@
+bash
+docker-compose build
+Run the Container
+
+For YouTube search: POST /youtube/{query}
+For OpenAI processing: POST /process-openai
+For encryption: POST /encrypt with a body like {"data": "your_string_here"}
+For decryption: POST /decrypt with a body like {"encrypted_data": "your_encrypted_string_here"}
+Security Note
+Ensure you keep your SECRET_KEY secure and not hardcoded in your codebase. Consider using environment variables or secret management tools for production applications.
+
+This setup gives you a solid foundation for building an AI application with OpenAI, incorporating secure encryption through the Quark library, and providing a robust API using FastAPI. If you need further customization or additional features, feel free to ask!
+
+
+
+
+
+
+
+
+
+ChatGPT can make mistakes. Check important 
