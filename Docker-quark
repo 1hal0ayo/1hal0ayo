@@ -1,0 +1,51 @@
+# Use Microsoft's universal development container as the base image
+FROM mcr.microsoft.com/devcontainers/universal:2 as base
+
+# Stage 1: Build the application
+FROM python:3.9-slim as builder
+
+# Set environment variables to prevent the creation of .pyc files
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Create and set the working directory
+WORKDIR /usr/src/app
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libffi-dev \
+    libssl-dev \
+    openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Copy application source code
+COPY . .
+
+# Run tests (if any test files are included in your project)
+RUN pytest tests/
+
+# Stage 2: Production Image
+FROM python:3.9-slim as production
+
+# Set a non-root user for security
+RUN useradd -m appuser
+USER appuser
+
+# Set the working directory
+WORKDIR /usr/src/app
+
+# Copy installed packages from the builder stage
+COPY --from=builder /usr/local/lib/python3.9 /usr/local/lib/python3.9
+COPY --from=builder /usr/src/app /usr/src/app
+
+# Expose the port the app runs on
+EXPOSE 8000
+
+# Command to run the application
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
