@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# Function to create file structure from clipboard data
+create_structure_from_clipboard() {
+    # Get clipboard data
+    CLIP_DATA=$(xclip -selection clipboard -o)
+
+    # Check if data exists in the clipboard
+    if [[ -z "$CLIP_DATA" ]]; then
+        echo "No data found in clipboard."
+        exit 1
+    fi
+
+    echo "Clipboard data received. Processing..."
+    
+    # Process data to create directory structure (Assuming data is a list of file paths)
+    echo "$CLIP_DATA" | while read -r line; do
+        # Create directory structure if it's a directory path
+        if [[ "$line" == */ ]]; then
+            mkdir -p "$line"
+            echo "Created directory: $line"
+        else
+            # Create file
+            mkdir -p "$(dirname "$line")"
+            touch "$line"
+            echo "Created file: $line"
+        fi
+    done
+
+    echo "File structure created successfully."
+}
+
+# Function to create a symbolic link to a project branch with a label and direction
+create_project_link() {
+    local target_branch=$1
+    local link_name=$2
+
+    if [[ -z "$target_branch" || -z "$link_name" ]]; then
+        echo "Usage: create_project_link <target_branch> <link_name>"
+        exit 1
+    fi
+
+    # Check if the branch exists
+    if git show-ref --verify --quiet "refs/heads/$target_branch"; then
+        # Create a symbolic link
+        ln -s "$PWD/$target_branch" "$link_name"
+        echo "Created a symbolic link to branch '$target_branch' with label '$link_name'"
+    else
+        echo "Branch '$target_branch' does not exist."
+    fi
+}
+
+# Main menu for user to choose actions
+main_menu() {
+    echo "Select an option:"
+    echo "1. Create file structure from clipboard data"
+    echo "2. Create a symbolic link to a project branch"
+    echo "3. Exit"
+    
+    read -p "Enter your choice: " choice
+
+    case $choice in
+        1)
+            create_structure_from_clipboard
+            ;;
+        2)
+            read -p "Enter the target branch name: " branch
+            read -p "Enter the link label name: " label
+            create_project_link "$branch" "$label"
+            ;;
+        3)
+            echo "Exiting script."
+            exit 0
+            ;;
+        *)
+            echo "Invalid choice. Please try again."
+            main_menu
+            ;;
+    esac
+}
+
+# Start the main menu
+main_menu
