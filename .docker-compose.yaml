@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/usr/src/app:ro
+    environment:
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+    
